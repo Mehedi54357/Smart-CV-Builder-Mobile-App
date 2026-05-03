@@ -11,6 +11,10 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendOTPEmail = async (email, otp, name) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log(`[TEST MODE] OTP for ${email} is: ${otp}`);
+    return;
+  }
   const mailOptions = {
     from: `"SmartCV Builder Pro" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -35,6 +39,10 @@ const sendOTPEmail = async (email, otp, name) => {
 };
 
 const sendPasswordResetEmail = async (email, otp, name) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log(`[TEST MODE] Password Reset OTP for ${email} is: ${otp}`);
+    return;
+  }
   const mailOptions = {
     from: `"SmartCV Builder Pro" <${process.env.EMAIL_USER}>`,
     to: email,
