@@ -9,7 +9,17 @@ const User       = require('../models/User.model');
 
 const bNone = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 
-const generateDOCX = async (userId) => {
+const THEME = {
+  govt:      { header: '14b8a6', accent: '0f766e', text: '0c4a6e' },
+  corporate: { header: '2b6cb0', accent: '1a365d', text: '1e3a8a' },
+  creative:  { header: '2d3748', accent: '38b2ac', text: '2d3748' },
+  tech:      { header: '0f172a', accent: 'f43f5e', text: '0f172a' },
+  europass:  { header: '003399', accent: '003399', text: '0c4a6e' },
+  academic:  { header: '0891b2', accent: '0369a1', text: '0c4a6e' },
+  'smart-pro': { header: '3b82f6', accent: '2563eb', text: '334155' },
+};
+
+const generateDOCX = async (userId, template = 'govt') => {
   const [user, profile, educations, experiences, skills, projects] = await Promise.all([
     User.findById(userId),
     Profile.findOne({ user: userId }),
@@ -19,9 +29,11 @@ const generateDOCX = async (userId) => {
     Project.find({ user: userId }).sort('order'),
   ]);
 
+  const theme = THEME[template] || THEME.govt;
+
   const sectionHead = (title) => new Paragraph({
-    children: [new TextRun({ text: title.toUpperCase(), font: 'Arial', size: 22, bold: true, color: '0F2044' })],
-    border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0F2044', space: 2 } },
+    children: [new TextRun({ text: title.toUpperCase(), font: 'Arial', size: 22, bold: true, color: theme.text })],
+    border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: theme.accent, space: 2 } },
     spacing: { before: 280, after: 140 },
   });
 
@@ -37,28 +49,30 @@ const generateDOCX = async (userId) => {
       rows: [new TableRow({ children: [new TableCell({
         children: [
           new Paragraph({ children: [new TextRun({ text: user.fullName, font: 'Arial', size: 44, bold: true, color: 'FFFFFF' })], alignment: AlignmentType.CENTER, spacing: { before: 160, after: 80 } }),
-          new Paragraph({ children: [new TextRun({ text: `${user.phone}  |  ${user.email}`, font: 'Arial', size: 20, color: '93C5FD' })], alignment: AlignmentType.CENTER, spacing: { before: 0, after: 160 } }),
+          new Paragraph({ children: [new TextRun({ text: `${user.phone||''}  |  ${user.email||''}`, font: 'Arial', size: 20, color: 'E2E8F0' })], alignment: AlignmentType.CENTER, spacing: { before: 0, after: 160 } }),
         ],
-        shading: { fill: '0F2044', type: ShadingType.CLEAR },
+        shading: { fill: theme.header, type: ShadingType.CLEAR },
         borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
         margins: { top: 200, bottom: 200, left: 400, right: 400 },
       })]})],
     }),
     // Objective
     ...(profile?.objective ? [sectionHead('Career Objective'), bodyText(profile.objective)] : []),
-    // Personal Info
-    sectionHead('Personal Information'),
-    ...[
-      ['Father\'s Name', profile?.fatherName], ['Mother\'s Name', profile?.motherName],
-      ['Date of Birth', profile?.dob ? new Date(profile.dob).toDateString() : ''],
-      ['Gender', profile?.gender], ['Nationality', profile?.nationality],
-      ['Religion', profile?.religion], ['NID', profile?.nid],
-    ].filter(([,v]) => v).map(([k,v]) => new Paragraph({
-      children: [
-        new TextRun({ text: k + ': ', font: 'Arial', size: 18, bold: true, color: '64748B' }),
-        new TextRun({ text: v, font: 'Arial', size: 18, color: '1E293B' }),
-      ], spacing: { before: 0, after: 40 },
-    })),
+    // Personal Info (Only for non-smart-pro templates)
+    ...(template !== 'smart-pro' ? [
+      sectionHead('Personal Information'),
+      ...[
+        ['Father\'s Name', profile?.fatherName], ['Mother\'s Name', profile?.motherName],
+        ['Date of Birth', profile?.dob ? new Date(profile.dob).toDateString() : ''],
+        ['Gender', profile?.gender], ['Nationality', profile?.nationality],
+        ['Religion', profile?.religion], ['NID', profile?.nid],
+      ].filter(([,v]) => v).map(([k,v]) => new Paragraph({
+        children: [
+          new TextRun({ text: k + ': ', font: 'Arial', size: 18, bold: true, color: '64748B' }),
+          new TextRun({ text: v, font: 'Arial', size: 18, color: '1E293B' }),
+        ], spacing: { before: 0, after: 40 },
+      }))
+    ] : []),
     // Education
     ...(educations.length ? [
       sectionHead('Education'),

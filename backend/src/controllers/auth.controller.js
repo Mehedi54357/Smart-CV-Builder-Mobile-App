@@ -8,9 +8,14 @@ exports.register = async (req, res) => {
     const { fullName, email, phone, password } = req.body;
     if (await User.findOne({ $or: [{ email }, { phone }] }))
       return res.status(400).json({ success: false, message: 'Email or phone already registered.' });
-    const user = await User.create({ fullName, email, phone, password });
-    await sendVerificationOTP(user);
-    res.status(201).json({ success: true, message: 'Registered! OTP sent to email.', user: { id: user._id, fullName: user.fullName, email: user.email } });
+    
+    // Create verified user but don't log them in yet
+    await User.create({ fullName, email, phone, password, isVerified: true });
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Registration successful! Please login with your credentials.'
+    });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 

@@ -9,4 +9,5 @@ router.post('/',            ctrl.createOrUpdateProfile);
 router.put('/',             ctrl.createOrUpdateProfile);
 router.get('/completion',   ctrl.getCompletion);
 router.post('/photo',       upload.single('profilePhoto'), ctrl.uploadPhoto);
+router.post('/sync',        ctrl.syncAll);
 module.exports = router;

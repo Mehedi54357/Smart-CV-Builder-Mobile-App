@@ -14,9 +14,9 @@ exports.generate = async (req, res) => {
     const { title, template = 'govt', language = 'en' } = req.body;
     const score = await calcCompletion(req.user._id);
 
-    // Generate PDF
-    const pdfBuffer  = await generatePDF(req.user._id);
-    const docxBuffer = await generateDOCX(req.user._id);
+    // Generate PDF & DOCX with chosen template
+    const pdfBuffer  = await generatePDF(req.user._id, template);
+    const docxBuffer = await generateDOCX(req.user._id, template);
 
     // Upload to Cloudinary
     const uploadBuffer = (buffer, fname, resType) => new Promise((resolve, reject) => {

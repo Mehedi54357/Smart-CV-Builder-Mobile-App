@@ -10,6 +10,7 @@ const ProfileSchema = new mongoose.Schema({
   altPhone:         String, linkedin: String,
   github:           String, portfolio: String,
   objective:        String,
+  cvMode:           { type: String, default: 'corporate' },
   completionPct:    { type: Number, default: 0 },
   currentStep:      { type: Number, default: 1 },
 }, { timestamps: true });
