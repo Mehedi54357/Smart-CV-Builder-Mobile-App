@@ -1,7 +1,14 @@
 const PDFDocument = require('pdfkit');
+const axios = require('axios');
+
+const fetchImage = async (url) => {
+  try { const r = await axios.get(url, { responseType: 'arraybuffer' }); return r.data; }
+  catch (e) { return null; }
+};
 
 // EUROPASS template — Official EU format, AUTO PAGE-BREAK
-module.exports = ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise((resolve, reject) => {
+module.exports = async ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise(async (resolve, reject) => {
+  try {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   const buf = []; doc.on('data', b => buf.push(b)); doc.on('end', () => resolve(Buffer.concat(buf))); doc.on('error', reject);
   const W = 595.28, H = 841.89, M = 45, bW = 505.28;
@@ -16,10 +23,32 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.rect(0, 0, W, 8).fill('#003399');
   doc.rect(0, 8, W, 100).fill('#f0f4ff');
   for (let i = 0; i < 12; i++) { doc.fontSize(9).fillColor('#ffd700').text('★', M + i * 16, 14); }
-  doc.fillColor('#003399').fontSize(21).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, 34, { width: bW, characterSpacing: 0.8 });
+
+  const photoSize = 75;
+  const photoX = W - M - photoSize;
+  const photoY = 20;
+
+  if (user?.profilePhoto) {
+    const imgBuf = await fetchImage(user.profilePhoto);
+    if (imgBuf) {
+      doc.save();
+      doc.rect(photoX, photoY, photoSize, photoSize).clip();
+      doc.image(imgBuf, photoX, photoY, { width: photoSize, height: photoSize });
+      doc.restore();
+      doc.rect(photoX, photoY, photoSize, photoSize).lineWidth(2).strokeColor('#003399').stroke();
+    }
+  } else {
+    doc.rect(photoX, photoY, photoSize, photoSize).fill('#e2e8f0');
+    doc.fillColor('#003399').fontSize(26).font('Helvetica-Bold')
+       .text((user?.fullName || 'U')[0].toUpperCase(), photoX, photoY + 22, { width: photoSize, align: 'center' });
+  }
+
+  const textW = bW - photoSize - 20;
+
+  doc.fillColor('#003399').fontSize(21).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, 34, { width: textW, characterSpacing: 0.8 });
   const ct = []; if (user?.phone) ct.push(user.phone); if (user?.email) ct.push(user.email);
-  doc.fontSize(9).font('Helvetica').fillColor('#334155').text(ct.join('  |  '), M, 62, { width: bW });
-  if (profile?.presentAddress) doc.fontSize(8.5).fillColor('#64748b').text(`📍 ${profile.presentAddress}`, M, 78, { width: bW });
+  doc.fontSize(9).font('Helvetica').fillColor('#334155').text(ct.join('  |  '), M, 62, { width: textW });
+  if (profile?.presentAddress) doc.fontSize(8.5).fillColor('#64748b').text(`📍 ${profile.presentAddress}`, M, 78, { width: textW });
 
   let y = 120;
 
@@ -89,4 +118,5 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.rect(0, H - 30, W, 2).fill('#003399');
   doc.fontSize(7.5).fillColor('#003399').font('Helvetica').text(`Europass CV  •  ${user?.fullName || ''}  •  ${new Date().toLocaleDateString('en-GB')}`, 0, H - 18, { align: 'center', width: W });
   doc.end();
+  } catch(err) { reject(err); }
 });

@@ -1,7 +1,14 @@
 const PDFDocument = require('pdfkit');
+const axios = require('axios');
+
+const fetchImage = async (url) => {
+  try { const r = await axios.get(url, { responseType: 'arraybuffer' }); return r.data; }
+  catch (e) { return null; }
+};
 
 // CORPORATE template — Dark Blue sidebar + white main, AUTO PAGE-BREAK
-module.exports = ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise((resolve, reject) => {
+module.exports = async ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise(async (resolve, reject) => {
+  try {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   const buf = []; doc.on('data', b => buf.push(b)); doc.on('end', () => resolve(Buffer.concat(buf))); doc.on('error', reject);
   const W = 595.28, H = 841.89;
@@ -26,6 +33,26 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
 
   drawBg();
 
+  // Profile Photo in Sidebar
+  const photoRadius = 45;
+  const photoX = SW / 2;
+  const photoY = 60;
+  
+  if (user?.profilePhoto) {
+    const imgBuf = await fetchImage(user.profilePhoto);
+    if (imgBuf) {
+      doc.save();
+      doc.circle(photoX, photoY, photoRadius).clip();
+      doc.image(imgBuf, photoX - photoRadius, photoY - photoRadius, { width: photoRadius * 2, height: photoRadius * 2 });
+      doc.restore();
+    }
+  } else {
+    doc.circle(photoX, photoY, photoRadius).fill('#2b6cb0');
+    doc.fillColor('#fff').fontSize(36).font('Helvetica-Bold')
+       .text((user?.fullName || 'U')[0].toUpperCase(), photoX - photoRadius, photoY - 14, { width: photoRadius * 2, align: 'center' });
+  }
+  doc.circle(photoX, photoY, photoRadius).lineWidth(3).strokeColor('#fff').stroke();
+
   // Header strip on main side
   doc.rect(SW, 0, W - SW, 110).fill('#2b6cb0');
   doc.fillColor('#fff').fontSize(20).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), MX, 22, { width: MW, lineGap: 2 });
@@ -36,7 +63,7 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.fontSize(8.5).fillColor('#93c5fd').text(ct.join('  |  '), MX, 72, { width: MW });
 
   // === SIDEBAR ===
-  let sy = 30;
+  let sy = photoY + photoRadius + 20;
   const sHead = (t) => {
     doc.rect(12, sy, SW - 24, 1).fill('#3b82f6'); sy += 6;
     doc.fontSize(8).font('Helvetica-Bold').fillColor('#93c5fd').text(t.toUpperCase(), 12, sy, { characterSpacing: 1 }); sy += 18;
@@ -128,4 +155,5 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.rect(SW, H - 26, W - SW, 26).fill('#2b6cb0');
   doc.fontSize(7.5).fillColor('#bfdbfe').font('Helvetica').text(`SmartCV Builder Pro  •  ${new Date().toLocaleDateString('en-GB')}`, MX, H - 17, { width: MW, align: 'center' });
   doc.end();
+  } catch(err) { reject(err); }
 });

@@ -1,7 +1,14 @@
 const PDFDocument = require('pdfkit');
+const axios = require('axios');
 
-// ACADEMIC template — Clean, serif-style, cyan accent, AUTO PAGE-BREAK
-module.exports = ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise((resolve, reject) => {
+const fetchImage = async (url) => {
+  try { const r = await axios.get(url, { responseType: 'arraybuffer' }); return r.data; }
+  catch (e) { return null; }
+};
+
+// ACADEMIC template — Clean, cyan accent, photo circle, AUTO PAGE-BREAK
+module.exports = async ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise(async (resolve, reject) => {
+  try {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   const buf = []; doc.on('data', b => buf.push(b)); doc.on('end', () => resolve(Buffer.concat(buf))); doc.on('error', reject);
   const W = 595.28, H = 841.89, M = 50, bW = 495.28;
@@ -15,13 +22,32 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   // Clean white bg + top accent
   doc.rect(0, 0, W, H).fill('#ffffff');
   doc.rect(0, 0, W, 6).fill('#0891b2');
-  doc.fillColor('#0c4a6e').fontSize(24).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, 24, { align: 'center', width: bW, characterSpacing: 1 });
-  doc.rect(M + 80, 58, bW - 160, 1.5).fill('#0891b2');
-  const ct = []; if (user?.phone) ct.push(user.phone); if (user?.email) ct.push(user.email); if (profile?.linkedin) ct.push(`LinkedIn: ${profile.linkedin}`);
-  doc.fontSize(9).font('Helvetica').fillColor('#0369a1').text(ct.join('   •   '), M, 66, { align: 'center', width: bW });
-  if (profile?.presentAddress) doc.fontSize(8).fillColor('#64748b').text(profile.presentAddress, M, 82, { align: 'center', width: bW });
 
-  let y = 104;
+  // Photo circle (centered, below top bar)
+  const photoR = 38, photoX = W / 2, photoY = 6 + photoR + 10;
+  if (user?.profilePhoto) {
+    const imgBuf = await fetchImage(user.profilePhoto);
+    if (imgBuf) {
+      doc.save();
+      doc.circle(photoX, photoY, photoR).clip();
+      doc.image(imgBuf, photoX - photoR, photoY - photoR, { width: photoR * 2, height: photoR * 2 });
+      doc.restore();
+    }
+  } else {
+    doc.circle(photoX, photoY, photoR).fill('#e0f2fe');
+    doc.fillColor('#0891b2').fontSize(28).font('Helvetica-Bold')
+       .text((user?.fullName || 'U')[0], photoX - photoR, photoY - 14, { width: photoR * 2, align: 'center' });
+  }
+  doc.circle(photoX, photoY, photoR).lineWidth(2).strokeColor('#0891b2').stroke();
+
+  const nameY = photoY + photoR + 8;
+  doc.fillColor('#0c4a6e').fontSize(22).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, nameY, { align: 'center', width: bW, characterSpacing: 1 });
+  doc.rect(M + 80, nameY + 34, bW - 160, 1.5).fill('#0891b2');
+  const ct = []; if (user?.phone) ct.push(user.phone); if (user?.email) ct.push(user.email); if (profile?.linkedin) ct.push(`LinkedIn: ${profile.linkedin}`);
+  doc.fontSize(9).font('Helvetica').fillColor('#0369a1').text(ct.join('   •   '), M, nameY + 40, { align: 'center', width: bW });
+  if (profile?.presentAddress) doc.fontSize(8).fillColor('#64748b').text(profile.presentAddress, M, nameY + 56, { align: 'center', width: bW });
+
+  let y = nameY + 76;
 
   const sec = (t) => {
     checkPage(50);
@@ -126,4 +152,5 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.rect(0, H - 28, W, 2).fill('#0891b2');
   doc.fontSize(7.5).fillColor('#0369a1').font('Helvetica').text(`Curriculum Vitae  •  ${user?.fullName || ''}  •  Generated: ${new Date().toLocaleDateString('en-GB')}`, 0, H - 18, { align: 'center', width: W });
   doc.end();
+  } catch(err) { reject(err); }
 });

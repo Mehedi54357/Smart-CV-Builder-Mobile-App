@@ -1,7 +1,14 @@
 const PDFDocument = require('pdfkit');
+const axios = require('axios');
+
+const fetchImage = async (url) => {
+  try { const r = await axios.get(url, { responseType: 'arraybuffer' }); return r.data; }
+  catch (e) { return null; }
+};
 
 // TECH template — Dark header, terminal style, AUTO PAGE-BREAK
-module.exports = ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise((resolve, reject) => {
+module.exports = async ({ user, profile, educations, experiences, skills, projects, languages }) => new Promise(async (resolve, reject) => {
+  try {
   const doc = new PDFDocument({ size: 'A4', margin: 0 });
   const buf = []; doc.on('data', b => buf.push(b)); doc.on('end', () => resolve(Buffer.concat(buf))); doc.on('error', reject);
   const W = 595.28, H = 841.89, M = 45, bW = 505.28;
@@ -15,10 +22,33 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   // Dark header
   doc.rect(0, 0, W, 125).fill('#0f172a');
   doc.rect(0, 122, W, 3).fill('#f43f5e');
-  doc.fillColor('#f8fafc').fontSize(22).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, 28, { width: bW, characterSpacing: 1.5 });
-  doc.fontSize(9).font('Helvetica').fillColor('#f43f5e').text('// Developer & Engineer', M, 58, { width: bW });
+
+  const photoSize = 75;
+  const photoX = W - M - photoSize;
+  const photoY = 25;
+
+  if (user?.profilePhoto) {
+    const imgBuf = await fetchImage(user.profilePhoto);
+    if (imgBuf) {
+      doc.save();
+      doc.rect(photoX, photoY, photoSize, photoSize).clip();
+      doc.image(imgBuf, photoX, photoY, { width: photoSize, height: photoSize });
+      doc.restore();
+      doc.rect(photoX, photoY, photoSize, photoSize).lineWidth(2).strokeColor('#f43f5e').stroke();
+    }
+  } else {
+    doc.rect(photoX, photoY, photoSize, photoSize).fill('#1e293b');
+    doc.fillColor('#f43f5e').fontSize(26).font('Helvetica-Bold')
+       .text((user?.fullName || 'U')[0].toUpperCase(), photoX, photoY + 22, { width: photoSize, align: 'center' });
+    doc.rect(photoX, photoY, photoSize, photoSize).lineWidth(2).strokeColor('#f43f5e').stroke();
+  }
+
+  const textW = bW - photoSize - 20;
+
+  doc.fillColor('#f8fafc').fontSize(22).font('Helvetica-Bold').text((user?.fullName || '').toUpperCase(), M, 28, { width: textW, characterSpacing: 1.5 });
+  doc.fontSize(9).font('Helvetica').fillColor('#f43f5e').text('// Developer & Engineer', M, 58, { width: textW });
   const ct = []; if (user?.phone) ct.push(user.phone); if (user?.email) ct.push(user.email); if (profile?.github) ct.push(`GitHub: ${profile.github}`);
-  doc.fontSize(8.5).fillColor('#94a3b8').text(ct.join('   |   '), M, 76, { width: bW });
+  doc.fontSize(8.5).fillColor('#94a3b8').text(ct.join('   |   '), M, 76, { width: textW });
 
   let y = 142;
 
@@ -120,4 +150,5 @@ module.exports = ({ user, profile, educations, experiences, skills, projects, la
   doc.rect(0, H - 26, W, 26).fill('#0f172a');
   doc.fontSize(7.5).fillColor('#f43f5e').font('Helvetica').text(`SmartCV Builder Pro  •  ${new Date().toLocaleDateString('en-GB')}`, 0, H - 17, { align: 'center', width: W });
   doc.end();
+  } catch(err) { reject(err); }
 });
