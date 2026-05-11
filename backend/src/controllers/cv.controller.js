@@ -28,8 +28,8 @@ exports.generate = async (req, res) => {
     });
 
     const [pdfResult, docxResult] = await Promise.all([
-      uploadBuffer(pdfBuffer,  `cv_${Date.now()}_pdf`,  'raw'),
-      uploadBuffer(docxBuffer, `cv_${Date.now()}_docx`, 'raw'),
+      uploadBuffer(pdfBuffer,  `cv_${Date.now()}.pdf`,  'raw'),
+      uploadBuffer(docxBuffer, `cv_${Date.now()}.docx`, 'raw'),
     ]);
 
     const cv = await CV.create({

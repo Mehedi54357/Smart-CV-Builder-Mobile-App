@@ -7,9 +7,24 @@ const calcCompletion = require('../utils/calcCompletion');
 
 exports.getProfile = async (req, res) => {
   try {
-    const profile = await Profile.findOne({ user: req.user._id });
-    const completion = await calcCompletion(req.user._id);
-    res.json({ success: true, profile, completion });
+    const [profile, educations, experiences, projects, skills, completion] = await Promise.all([
+      Profile.findOne({ user: req.user._id }),
+      Education.find({ user: req.user._id }).sort('order'),
+      Experience.find({ user: req.user._id }).sort('order'),
+      Project.find({ user: req.user._id }).sort('order'),
+      Skills.findOne({ user: req.user._id }),
+      calcCompletion(req.user._id)
+    ]);
+    
+    res.json({ 
+      success: true, 
+      profile, 
+      educations, 
+      experiences, 
+      projects, 
+      skills, 
+      completion 
+    });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 

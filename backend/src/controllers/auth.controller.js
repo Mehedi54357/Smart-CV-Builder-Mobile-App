@@ -82,5 +82,14 @@ exports.resetPassword = async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+// GET /api/auth/me
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password -otp -otpExpiry');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    res.json({ success: true, user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, plan: user.plan, role: user.role } });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
 // POST /api/auth/logout
 exports.logout = (req, res) => res.json({ success: true, message: 'Logged out.' });
