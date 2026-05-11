@@ -15,8 +15,13 @@ exports.generate = async (req, res) => {
     const score = await calcCompletion(req.user._id);
 
     // Generate PDF & DOCX with chosen template
+    console.log(`[CVGen] Generating PDF for user ${req.user._id} using template ${template}`);
     const pdfBuffer  = await generatePDF(req.user._id, template);
+    
+    console.log(`[CVGen] Generating DOCX for user ${req.user._id}`);
     const docxBuffer = await generateDOCX(req.user._id, template);
+    
+    console.log(`[CVGen] Uploading to Cloudinary...`);
 
     // Upload to Cloudinary
     const uploadBuffer = (buffer, fname, resType) => new Promise((resolve, reject) => {
@@ -32,13 +37,18 @@ exports.generate = async (req, res) => {
       uploadBuffer(docxBuffer, `cv_${Date.now()}.docx`, 'raw'),
     ]);
 
+    console.log(`[CVGen] Successfully uploaded files.`);
+
     const cv = await CV.create({
       user: req.user._id, title, template, language,
       pdfUrl: pdfResult.secure_url, docxUrl: docxResult.secure_url, score,
     });
 
     res.status(201).json({ success:true, cv });
-  } catch(e){ res.status(500).json({success:false,message:e.message}); }
+  } catch(e){ 
+    console.error(`[CVGen] Error: ${e.message}`, e);
+    res.status(500).json({success:false,message:`Server Generation Error: ${e.message}`}); 
+  }
 };
 
 exports.getById = async (req, res) => {

@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const fetchImage = async (url) => {
   try {
-    const res = await axios.get(url, { responseType: 'arraybuffer' });
+    const res = await axios.get(url, { responseType: 'arraybuffer', timeout: 10000 });
     return res.data;
   } catch (e) { return null; }
 };

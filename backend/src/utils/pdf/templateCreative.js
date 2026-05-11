@@ -2,7 +2,7 @@ const PDFDocument = require('pdfkit');
 const axios = require('axios');
 
 const fetchImage = async (url) => {
-  try { const r = await axios.get(url, { responseType: 'arraybuffer' }); return r.data; }
+  try { const r = await axios.get(url, { responseType: 'arraybuffer', timeout: 10000 }); return r.data; }
   catch (e) { return null; }
 };
 
