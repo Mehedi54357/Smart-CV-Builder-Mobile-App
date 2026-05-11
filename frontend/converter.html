@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      document.body.innerHTML = `<div id="res">${dataUrl}</div>`;
+    };
+    img.src = 'file:///C:/Users/Dell/.gemini/antigravity/brain/bac5bb53-2421-4bde-a113-66d8b12af21f/real_png_icon_1778426460046.png';
+  </script>
+</body>
+</html>
