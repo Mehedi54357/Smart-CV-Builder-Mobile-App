@@ -2,7 +2,7 @@ const router = require('express').Router();
 const ctrl   = require('../controllers/auth.controller');
 const { authLimiter } = require('../middleware/rateLimiter');
 
-const { protect } = require('../middleware/auth');
+const { protect } = require('../middleware/auth.middleware');
 
 router.post('/register',       authLimiter, ctrl.register);
 router.post('/login',          authLimiter, ctrl.login);
