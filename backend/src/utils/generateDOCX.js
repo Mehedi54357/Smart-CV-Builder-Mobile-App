@@ -1,11 +1,19 @@
 const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-        AlignmentType, BorderStyle, WidthType, ShadingType } = require('docx');
+        AlignmentType, BorderStyle, WidthType, ShadingType, ImageRun } = require('docx');
+const axios = require('axios');
 const Profile    = require('../models/Profile.model');
 const Education  = require('../models/Education.model');
 const Experience = require('../models/Experience.model');
 const Skills     = require('../models/Skills.model');
 const Project    = require('../models/Project.model');
 const User       = require('../models/User.model');
+
+const fetchImage = async (url) => {
+  try {
+    const res = await axios.get(url, { responseType: 'arraybuffer', timeout: 10000 });
+    return res.data;
+  } catch (e) { return null; }
+};
 
 const bNone = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
 
@@ -28,8 +36,10 @@ const generateDOCX = async (userId, template = 'govt') => {
     Skills.findOne({ user: userId }),
     Project.find({ user: userId }).sort('order'),
   ]);
+  const languages = skills?.languages || [];
 
   const theme = THEME[template] || THEME.govt;
+  const imgBuffer = user.profilePhoto ? await fetchImage(user.profilePhoto) : null;
 
   const sectionHead = (title) => new Paragraph({
     children: [new TextRun({ text: title.toUpperCase(), font: 'Arial', size: 22, bold: true, color: theme.text })],
@@ -45,16 +55,27 @@ const generateDOCX = async (userId, template = 'govt') => {
   const children = [
     // Header
     new Table({
-      width: { size: 9360, type: WidthType.DXA }, columnWidths: [9360],
-      rows: [new TableRow({ children: [new TableCell({
-        children: [
-          new Paragraph({ children: [new TextRun({ text: user.fullName, font: 'Arial', size: 44, bold: true, color: 'FFFFFF' })], alignment: AlignmentType.CENTER, spacing: { before: 160, after: 80 } }),
-          new Paragraph({ children: [new TextRun({ text: `${user.phone||''}  |  ${user.email||''}`, font: 'Arial', size: 20, color: 'E2E8F0' })], alignment: AlignmentType.CENTER, spacing: { before: 0, after: 160 } }),
-        ],
-        shading: { fill: theme.header, type: ShadingType.CLEAR },
-        borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
-        margins: { top: 200, bottom: 200, left: 400, right: 400 },
-      })]})],
+      width: { size: 9360, type: WidthType.DXA }, 
+      columnWidths: imgBuffer ? [1500, 7860] : [9360],
+      rows: [new TableRow({ children: [
+        ...(imgBuffer ? [new TableCell({
+          children: [new Paragraph({
+            children: [new ImageRun({ data: imgBuffer, transformation: { width: 70, height: 70 } })],
+            alignment: AlignmentType.CENTER
+          })],
+          shading: { fill: theme.header, type: ShadingType.CLEAR },
+          borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
+        })] : []),
+        new TableCell({
+          children: [
+            new Paragraph({ children: [new TextRun({ text: user.fullName, font: 'Arial', size: 44, bold: true, color: 'FFFFFF' })], alignment: AlignmentType.LEFT, spacing: { before: 160, after: 80 } }),
+            new Paragraph({ children: [new TextRun({ text: `${user.phone||''}  |  ${user.email||''}`, font: 'Arial', size: 20, color: 'E2E8F0' })], alignment: AlignmentType.LEFT, spacing: { before: 0, after: 160 } }),
+          ],
+          shading: { fill: theme.header, type: ShadingType.CLEAR },
+          borders: { top: bNone, bottom: bNone, left: bNone, right: bNone },
+          margins: { top: 200, bottom: 200, left: 400, right: 400 },
+        })
+      ]})],
     }),
     // Objective
     ...(profile?.objective ? [sectionHead('Career Objective'), bodyText(profile.objective)] : []),
@@ -104,6 +125,17 @@ const generateDOCX = async (userId, template = 'govt') => {
       sectionHead('Skills'),
       ...(skills.technical?.length ? [new Paragraph({ children: [new TextRun({ text: 'Technical: ', font: 'Arial', size: 19, bold: true }), new TextRun({ text: skills.technical.join(', '), font: 'Arial', size: 19 })], spacing: { before: 0, after: 60 } })] : []),
       ...(skills.soft?.length ? [new Paragraph({ children: [new TextRun({ text: 'Soft Skills: ', font: 'Arial', size: 19, bold: true }), new TextRun({ text: skills.soft.join(', '), font: 'Arial', size: 19 })], spacing: { before: 0, after: 60 } })] : []),
+    ] : []),
+    // Languages
+    ...(languages?.length ? [
+      sectionHead('Language Proficiency'),
+      ...languages.map(l => new Paragraph({
+        children: [
+          new TextRun({ text: `${l.name || l.language}: `, font: 'Arial', size: 19, bold: true }),
+          new TextRun({ text: `Reading: ${l.reading || ''}, Writing: ${l.writing || ''}, Speaking: ${l.speaking || ''}`, font: 'Arial', size: 19 }),
+        ],
+        spacing: { before: 0, after: 40 },
+      }))
     ] : []),
   ];
 
