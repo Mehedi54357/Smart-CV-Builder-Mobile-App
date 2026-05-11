@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const CVSchema = new mongoose.Schema({
   user:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   title:         { type: String, required: true },
-  template:      { type: String, enum: ['govt','corporate','europass','creative','tech','academic'], default: 'govt' },
+  template:      { type: String, enum: ['govt','corporate','europass','creative','tech','academic','smart-pro'], default: 'govt' },
   language:      { type: String, enum: ['en','bn'], default: 'en' },
   pdfUrl:        String, docxUrl: String,
   score:         { type: Number, min: 0, max: 100, default: 0 },
