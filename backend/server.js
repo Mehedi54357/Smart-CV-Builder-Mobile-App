@@ -7,7 +7,9 @@ const connectDB = require('./src/config/db');
 const logger   = require('./src/utils/logger');
 
 dotenv.config();
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 const app = express();
 app.set('trust proxy', 1);
