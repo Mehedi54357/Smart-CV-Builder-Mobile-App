@@ -20,6 +20,9 @@
       },
       "ios": {
         "distribution": "internal"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://smart-cv-builder-mobile-app.onrender.com/api"
       }
     },
     "production": {
@@ -30,7 +33,7 @@
         "distribution": "store"
       },
       "env": {
-        "API_BASE_URL": "https://api.smartcvbd.com/api"
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.smartcvbd.com/api"
       }
     }
   },

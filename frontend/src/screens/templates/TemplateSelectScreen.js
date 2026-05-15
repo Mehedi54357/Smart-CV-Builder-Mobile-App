@@ -8,11 +8,48 @@ import Button from '../../components/common/Button';
 
 // Visual mini-preview per template
 const TemplateMockup = ({ t }) => {
-  if (t.id === 'creative' || t.id === 'corporate' || t.id === 'smart-pro') {
+  if (t.id === 'creative' || t.id === 'corporate' || t.id === 'smart-pro' || t.id === 'bengali-pro' || t.id === 'modern-tech' || t.id === 'classic-minimal' || t.id === 'classic-centered' || t.id === 'student-vibrant') {
     // Two-column layout preview
     const isSmart = t.id === 'smart-pro';
-    const leftBg = isSmart ? '#f8fafc' : (t.id === 'creative' ? '#1a202c' : '#0f2d5c');
-    const rightBg = isSmart ? '#ffffff' : (t.id === 'creative' ? '#2d3748' : '#1a365d');
+    const isBengali = t.id === 'bengali-pro';
+    const isModern = t.id === 'modern-tech';
+    const isMinimal = t.id === 'classic-minimal';
+    const isCentered = t.id === 'classic-centered';
+    const isStudent = t.id === 'student-vibrant';
+    
+    if (isStudent) {
+       return (
+         <View style={[mk.twoCol, { backgroundColor: '#fff', flexDirection: 'column' }]}>
+            <View style={{width:'100%', height:20, backgroundColor:t.color, padding:4, flexDirection:'row', alignItems:'center'}}>
+               <View style={{width:12, height:12, borderRadius:6, backgroundColor:'#fff'}}/>
+               <View style={{width:'50%', height:4, backgroundColor:'#fff', marginLeft:6, borderRadius:2}}/>
+            </View>
+            <View style={{flexDirection:'row', flex:1}}>
+               <View style={{width:'30%', height:'100%', backgroundColor:'#f0fdfa'}}/>
+               <View style={{flex:1, padding:6}}>
+                  <View style={{width:'80%', height:2, backgroundColor:'#e2e8f0', marginBottom:4}}/>
+                  <View style={{width:'40%', height:2, backgroundColor:'#14b8a6', marginBottom:8}}/>
+               </View>
+            </View>
+         </View>
+       );
+    }
+    
+    if (isMinimal || isCentered) {
+      return (
+        <View style={[mk.twoCol, { backgroundColor: '#fff', flexDirection: 'column', padding: 8, alignItems: isCentered ? 'center' : 'stretch' }]}>
+           <View style={{flexDirection: isCentered ? 'column' : 'row', justifyContent:'space-between', alignItems: isCentered ? 'center' : 'stretch', marginBottom:8, width: '100%'}}>
+              <View style={{width:'60%', height:4, backgroundColor:'#334155', borderRadius:2, marginBottom: isCentered ? 4 : 0}}/>
+              {!isCentered && <View style={{width:16, height:16, backgroundColor:'#e2e8f0', borderRadius:2}}/>}
+              {isCentered && <View style={{width:'40%', height:2, backgroundColor:'#3b82f6', borderRadius:1}}/>}
+           </View>
+           <View style={{width:'100%', height:2, backgroundColor:'#f1f5f9', marginBottom:4}}/>
+           <View style={{width:'100%', height:2, backgroundColor:'#f1f5f9', marginBottom:4}}/>
+        </View>
+      );
+    }
+    const leftBg = isBengali || isModern ? (isModern ? '#ffffff' : '#0F2044') : (isSmart ? '#f8fafc' : (t.id === 'creative' ? '#1a202c' : '#0f2d5c'));
+    const rightBg = isBengali || isModern ? '#ffffff' : (isSmart ? '#ffffff' : (t.id === 'creative' ? '#2d3748' : '#1a365d'));
     
     return (
       <View style={[mk.twoCol, { backgroundColor: rightBg }]}>

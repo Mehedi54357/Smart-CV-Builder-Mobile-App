@@ -29,8 +29,8 @@ const CVPaper = ({ user, profile, educations, experiences, projects, skills, lan
     {/* Header */}
     <View style={cv.header}>
       <View style={cv.avatar}>
-        {profile?.profilePhoto ? (
-          <Image source={{ uri: profile.profilePhoto }} style={{ width: 64, height: 64, borderRadius: 32 }} />
+        {(user?.profilePhoto || profile?.profilePhoto) ? (
+          <Image source={{ uri: user?.profilePhoto || profile.profilePhoto }} style={{ width: 64, height: 64, borderRadius: 32 }} />
         ) : (
           <Text style={cv.avatarTxt}>{(user?.fullName || 'U')[0]}</Text>
         )}
@@ -121,8 +121,8 @@ const CVPaper = ({ user, profile, educations, experiences, projects, skills, lan
     )}
 
     {/* Skills */}
-    {skills && (skills.technical?.length > 0 || skills.soft?.length > 0) && (
-      <CVSection title="Skills">
+    {(skills?.technical?.length > 0 || skills?.soft?.length > 0) && (
+      <CVSection title="দক্ষতা ও বিশেষত্ব (Skills)">
         {skills.technical?.length > 0 && (
           <View style={cv.skillRow}>
             <Text style={cv.skillCat}>Technical: </Text>
@@ -135,7 +135,7 @@ const CVPaper = ({ user, profile, educations, experiences, projects, skills, lan
         )}
         {skills.soft?.length > 0 && (
           <View style={cv.skillRow}>
-            <Text style={cv.skillCat}>Soft Skills: </Text>
+            <Text style={cv.skillCat}>অন্যান্য: </Text>
             <Text style={cv.body}>{skills.soft.join(' • ')}</Text>
           </View>
         )}
@@ -208,7 +208,7 @@ export default function CVPreviewScreen({ navigation }) {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(dest, { 
           dialogTitle: 'Share your CV',
-          UTI: format === 'pdf' ? 'com.adobe.pdf' : 'com.microsoft.word.dotx'
+          UTI: format === 'pdf' ? 'com.adobe.pdf' : 'org.openxmlformats.wordprocessingml.document'
         });
       } else {
         Alert.alert('Downloaded!', `Your CV has been saved.`);

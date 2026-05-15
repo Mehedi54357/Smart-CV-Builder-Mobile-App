@@ -25,6 +25,7 @@ const THEME = {
   europass:  { header: '003399', accent: '003399', text: '0c4a6e' },
   academic:  { header: '0891b2', accent: '0369a1', text: '0c4a6e' },
   'smart-pro': { header: '3b82f6', accent: '2563eb', text: '334155' },
+  'bengali-pro': { header: '0F2044', accent: '1e3a8a', text: '0c4a6e' },
 };
 
 const generateDOCX = async (userId, template = 'govt') => {

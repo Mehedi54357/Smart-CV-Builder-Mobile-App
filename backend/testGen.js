@@ -1,6 +1,5 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const generateDOCX = require('./src/utils/generateDOCX');
 const generatePDF = require('./src/utils/generatePDF');
 const User = require('./src/models/User.model');
 
@@ -10,16 +9,24 @@ async function test() {
     console.log('Connected to DB');
     const user = await User.findOne();
     if(!user) return console.log('no user');
-    console.log('Generating DOCX for user', user._id);
-    const docx = await generateDOCX(user._id, 'govt');
-    console.log('DOCX OK, size:', docx.length);
-    console.log('Generating PDF...');
-    const pdf = await generatePDF(user._id, 'govt');
-    console.log('PDF OK, size:', pdf.length);
+
+    const templates = ['bengali-pro', 'modern-tech', 'classic-minimal', 'classic-centered', 'student-vibrant'];
+    
+    for(const t of templates) {
+      console.log(`[TEST] Generating PDF for template: ${t}...`);
+      try {
+        const pdf = await generatePDF(user._id, t);
+        console.log(`[OK] ${t} generated successfully. Size: ${pdf.length} bytes`);
+      } catch(err) {
+        console.error(`[FAIL] ${t} failed: ${err.message}`);
+      }
+    }
+
   } catch(e) {
-    console.error('ERROR:', e);
+    console.error('CRITICAL ERROR:', e);
   } finally {
     mongoose.disconnect();
+    console.log('Disconnected from DB');
   }
 }
 test();

@@ -13,5 +13,22 @@ const ProfileSchema = new mongoose.Schema({
   cvMode:           { type: String, default: 'corporate' },
   completionPct:    { type: Number, default: 0 },
   currentStep:      { type: Number, default: 1 },
+  // Driving License fields
+  licenseNo: String,
+  licenseType: String,
+  licenseIssueDate: String,
+  licenseExpiryDate: String,
+  licenseAuthority: String,
+  
+  references: [{
+    name: String,
+    designation: String,
+    organization: String,
+    phone: String,
+    email: String,
+    relationship: String,
+  }],
+  achievements: [String],
+  certifications: [String],
 }, { timestamps: true });
 module.exports = mongoose.model('Profile', ProfileSchema);

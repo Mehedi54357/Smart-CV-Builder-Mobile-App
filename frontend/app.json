@@ -22,8 +22,9 @@
       },
       "package": "com.smartcv.builder",
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -36,7 +37,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "30ca7583-226a-4dde-969a-6914a6703ed2"
+        "projectId": "820e5390-f229-4f91-afd0-6858b0fc2fb8"
       }
     }
   }

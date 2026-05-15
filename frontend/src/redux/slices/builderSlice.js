@@ -11,6 +11,8 @@ const initialFormData = {
   // Step 2 — Contact
   phone: '', altPhone: '', email: '',
   linkedin: '', github: '', portfolio: '',
+  // Driving License (Specialized)
+  licenseNo: '', licenseType: '', licenseIssueDate: '', licenseExpiryDate: '', licenseAuthority: '',
   // Step 3 — Objective
   // Step 3 — Objective
   objective: '',
@@ -19,7 +21,7 @@ const initialFormData = {
 
 export const saveDraftAll = createAsyncThunk('builder/saveDraftAll', async (_, { getState, rejectWithValue }) => {
   try {
-    const { formData, educations, experiences, projects, skills, languages, isLoaded } = getState().builder;
+    const { formData, educations, experiences, projects, skills, languages, references, extraInfo, isLoaded } = getState().builder;
     
     // SAFETY CHECK: Don't save if the data hasn't been loaded from the server yet
     // to avoid overwriting existing server data with empty initial state.
@@ -28,7 +30,7 @@ export const saveDraftAll = createAsyncThunk('builder/saveDraftAll', async (_, {
       return rejectWithValue('Data not loaded yet');
     }
 
-    const res = await profileAPI.syncAll({ formData, educations, experiences, projects, skills, languages });
+    const res = await profileAPI.syncAll({ formData, educations, experiences, projects, skills, languages, references, extraInfo });
     return res.data;
   } catch (err) {
     return rejectWithValue(err.message);
@@ -103,6 +105,10 @@ const builderSlice = createSlice({
       state.isDirty = true;
     },
     updateLanguages: (state, action) => { state.languages = action.payload; },
+    updateExtraInfo: (state, action) => {
+      state.extraInfo = { ...state.extraInfo, ...action.payload };
+      state.isDirty = true;
+    },
     addCertification: (state, action) => { state.certifications.push(action.payload); },
     removeCertification: (state, action) => {
       state.certifications = state.certifications.filter((_, i) => i !== action.payload);
@@ -150,6 +156,8 @@ const builderSlice = createSlice({
           };
           state.languages = skills.languages || [];
         }
+        if (profile?.references) state.references = profile.references;
+        if (profile?.extraInfo) state.extraInfo = profile.extraInfo;
         if (completion !== undefined) state.completionPct = completion;
         state.isLoaded = true;
       })
@@ -170,7 +178,7 @@ export const {
   setStep, nextStep, prevStep,
   updateFormData, addEducation, updateEducation, removeEducation,
   addExperience, updateExperience, removeExperience,
-  addProject, removeProject, updateSkills, updateLanguages,
+  addProject, removeProject, updateSkills, updateLanguages, updateExtraInfo,
   addCertification, removeCertification, addAchievement, addReference,
   setTemplate, markSaved, resetBuilder, loadDraft,
 } = builderSlice.actions;

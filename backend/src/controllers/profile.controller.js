@@ -50,13 +50,20 @@ exports.getCompletion = async (req, res) => {
 
 exports.syncAll = async (req, res) => {
   try {
-    const { formData, educations, experiences, projects, skills, languages } = req.body;
+    const { formData, educations, experiences, projects, skills, languages, references, extraInfo, achievements, certifications } = req.body;
     
-    // 1. Update Profile (Step 1, 2, 3)
-    if (formData) {
+    // 1. Update Profile (Step 1, 2, 3 + References + ExtraInfo + Achievements)
+    if (formData || references || extraInfo || achievements || certifications) {
       await Profile.findOneAndUpdate(
         { user: req.user._id }, 
-        { ...formData, user: req.user._id }, 
+        { 
+          ...formData, 
+          references: references || [], 
+          extraInfo: extraInfo || {},
+          achievements: achievements || [],
+          certifications: certifications || [],
+          user: req.user._id 
+        }, 
         { new: true, upsert: true, runValidators: true }
       );
     }

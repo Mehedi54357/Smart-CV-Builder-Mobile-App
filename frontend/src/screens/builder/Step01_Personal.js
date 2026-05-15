@@ -179,6 +179,51 @@ export default function Step01_Personal({ navigation }) {
                 value={value} onChangeText={onChange} onBlur={onBlur} multiline numberOfLines={3} error={errors.permanentAddress?.message} />
             )} />
         )}
+
+        {/* Driving License - Optional but useful for many users */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Driving License Information (Optional)</Text>
+        </View>
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Controller name="licenseType" control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField label="License Type" placeholder="e.g. Heavy / Medium" 
+                  value={value} onChangeText={onChange} onBlur={onBlur} />
+              )} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Controller name="licenseNo" control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField label="License Number" placeholder="CK057XXXX" 
+                  value={value} onChangeText={onChange} onBlur={onBlur} />
+              )} />
+          </View>
+        </View>
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Controller name="licenseIssueDate" control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField label="Issue Date" placeholder="YYYY-MM-DD" 
+                  value={value} onChangeText={onChange} onBlur={onBlur} />
+              )} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Controller name="licenseExpiryDate" control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField label="Expiry Date" placeholder="YYYY-MM-DD" 
+                  value={value} onChangeText={onChange} onBlur={onBlur} />
+              )} />
+          </View>
+        </View>
+
+        <Controller name="licenseAuthority" control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <InputField label="Issuing Authority" placeholder="e.g. BRTA, Cumilla" 
+              value={value} onChangeText={onChange} onBlur={onBlur} />
+          )} />
       </ScrollView>
 
       {/* Bottom Nav */}
@@ -227,4 +272,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 10, padding: 16,
     borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: COLORS.bgCard,
   },
+  sectionHeader: { marginTop: 20, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border, paddingBottom: 6 },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: COLORS.accent, textTransform: 'uppercase', letterSpacing: 1 },
 });
