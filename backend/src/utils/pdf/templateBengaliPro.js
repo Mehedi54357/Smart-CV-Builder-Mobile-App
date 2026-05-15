@@ -23,10 +23,14 @@ module.exports = async ({ user, profile, educations, experiences, skills, projec
       // Note: You must have a Bengali font like SolaimanLipi.ttf in your fonts folder.
       // If not, it will fallback to Helvetica which won't show Bengali characters.
       const fontPath = path.join(__dirname, '..', '..', 'assets', 'fonts', 'SolaimanLipi.ttf');
-      const hasFont = true; // Set to true if file exists
       
       const setFont = (isBold = false) => {
-        try { doc.font(fontPath); } catch(e) { doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica'); }
+        try { 
+          // Only attempt to use font if path is valid
+          doc.font(fontPath); 
+        } catch(e) { 
+          doc.font(isBold ? 'Helvetica-Bold' : 'Helvetica'); 
+        }
       };
 
       const W = 595.28, H = 841.89;
